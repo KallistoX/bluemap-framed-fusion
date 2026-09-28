@@ -1,0 +1,5 @@
+{
+  "id": "framed-fusion",
+  "entrypoint": "io.github.kallistox.framedfusion.FramedFusionAddon",
+  "version": "${version}"
+}

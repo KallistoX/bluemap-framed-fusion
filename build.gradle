@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.kallistox'
+version = "${addon_version}-${bluemap_version}"
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    maven { url = 'https://repo.bluecolored.de/releases' }
+    mavenCentral()
+}
+
+dependencies {
+    // Provided by BlueMap at runtime; nothing is shaded into the addon jar.
+    compileOnly "de.bluecolored:bluemap-core:${bluemap_version}"
+    compileOnly "de.bluecolored:bluemap-api:${bluemap_api_version}"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('bluemap.addon.json') {
+        expand version: project.version
+    }
+}
+
+jar {
+    from('LICENSE')
+    // Reproducible jar: same sources give the same bytes (and the same SHA-512).
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
