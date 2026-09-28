@@ -1,0 +1,99 @@
+{
+ "multipart": [
+  {
+   "when": {
+    "up": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/template_wall_post"
+   }
+  },
+  {
+   "when": {
+    "north": "low"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/template_wall_side",
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "east": "low"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/template_wall_side",
+    "uvlock": true,
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "south": "low"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/template_wall_side",
+    "uvlock": true,
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "west": "low"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/template_wall_side",
+    "uvlock": true,
+    "y": 270
+   }
+  },
+  {
+   "when": {
+    "north": "tall"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/template_wall_side_tall",
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "east": "tall"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/template_wall_side_tall",
+    "uvlock": true,
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "south": "tall"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/template_wall_side_tall",
+    "uvlock": true,
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "west": "tall"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/template_wall_side_tall",
+    "uvlock": true,
+    "y": 270
+   }
+  }
+ ]
+}

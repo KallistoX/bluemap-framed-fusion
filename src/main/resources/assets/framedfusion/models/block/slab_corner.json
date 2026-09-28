@@ -1,0 +1,40 @@
+{
+ "textures": {
+  "camo": "framedblocks:block/framed_block",
+  "particle": "framedblocks:block/framed_block"
+ },
+ "elements": [
+  {
+   "from": [
+    0,
+    0,
+    0
+   ],
+   "to": [
+    8,
+    8,
+    8
+   ],
+   "faces": {
+    "down": {
+     "texture": "#camo"
+    },
+    "up": {
+     "texture": "#camo"
+    },
+    "north": {
+     "texture": "#camo"
+    },
+    "south": {
+     "texture": "#camo"
+    },
+    "west": {
+     "texture": "#camo"
+    },
+    "east": {
+     "texture": "#camo"
+    }
+   }
+  }
+ ]
+}

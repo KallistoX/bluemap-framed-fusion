@@ -1,0 +1,8 @@
+{
+ "variants": {
+  "": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/cube"
+  }
+ }
+}

@@ -1,0 +1,88 @@
+{
+ "multipart": [
+  {
+   "when": {
+    "facing": "north"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/corner_pillar"
+   }
+  },
+  {
+   "when": {
+    "facing": "north"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/corner_pillar_two",
+    "y": 90,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "east"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/corner_pillar",
+    "y": 90,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "east"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/corner_pillar_two",
+    "y": 180,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "south"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/corner_pillar",
+    "y": 180,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "south"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/corner_pillar_two",
+    "y": 270,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "west"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/corner_pillar",
+    "y": 270,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "west"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/corner_pillar_two"
+   }
+  }
+ ]
+}

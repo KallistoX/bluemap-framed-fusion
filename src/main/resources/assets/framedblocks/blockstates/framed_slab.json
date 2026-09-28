@@ -1,0 +1,12 @@
+{
+ "variants": {
+  "top=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/slab"
+  },
+  "top=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/slab_top"
+  }
+ }
+}

@@ -1,0 +1,404 @@
+{
+ "multipart": [
+  {
+   "when": {
+    "facing": "north",
+    "top": "false",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs",
+    "y": 180,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "top": "false",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_top_two",
+    "y": 270,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "top": "false",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_right",
+    "y": 180,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "top": "false",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_top_two",
+    "y": 180,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "top": "true",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_top",
+    "y": 180,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "top": "true",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_two",
+    "y": 270,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "top": "true",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_top_right",
+    "y": 180,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "north",
+    "top": "true",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_two",
+    "y": 180,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "top": "false",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs",
+    "y": 270,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "top": "false",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_top_two"
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "top": "false",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_right",
+    "y": 270,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "top": "false",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_top_two",
+    "y": 270,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "top": "true",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_top",
+    "y": 270,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "top": "true",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_two"
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "top": "true",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_top_right",
+    "y": 270,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "east",
+    "top": "true",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_two",
+    "y": 270,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "top": "false",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs"
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "top": "false",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_top_two",
+    "y": 90,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "top": "false",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_right"
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "top": "false",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_top_two"
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "top": "true",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_top"
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "top": "true",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_two",
+    "y": 90,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "top": "true",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_top_right"
+   }
+  },
+  {
+   "when": {
+    "facing": "south",
+    "top": "true",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_two"
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "top": "false",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs",
+    "y": 90,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "top": "false",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_top_two",
+    "y": 180,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "top": "false",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_right",
+    "y": 90,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "top": "false",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_top_two",
+    "y": 90,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "top": "true",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_top",
+    "y": 90,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "top": "true",
+    "right": "false"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_two",
+    "y": 180,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "top": "true",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/half_stairs_top_right",
+    "y": 90,
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "facing": "west",
+    "top": "true",
+    "right": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_corner_two",
+    "y": 90,
+    "uvlock": true
+   }
+  }
+ ]
+}

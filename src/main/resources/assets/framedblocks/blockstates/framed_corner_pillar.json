@@ -1,0 +1,26 @@
+{
+ "variants": {
+  "facing=north": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/corner_pillar"
+  },
+  "facing=east": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/corner_pillar",
+   "y": 90,
+   "uvlock": true
+  },
+  "facing=south": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/corner_pillar",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=west": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/corner_pillar",
+   "y": 270,
+   "uvlock": true
+  }
+ }
+}

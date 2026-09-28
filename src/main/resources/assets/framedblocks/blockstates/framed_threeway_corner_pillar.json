@@ -1,0 +1,48 @@
+{
+ "variants": {
+  "facing=north,top=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_both",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=north,top=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_both",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=east,top=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_both",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=east,top=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_both",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=south,top=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_both"
+  },
+  "facing=south,top=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_both"
+  },
+  "facing=west,top=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_both",
+   "y": 90,
+   "uvlock": true
+  },
+  "facing=west,top=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_both",
+   "y": 90,
+   "uvlock": true
+  }
+ }
+}

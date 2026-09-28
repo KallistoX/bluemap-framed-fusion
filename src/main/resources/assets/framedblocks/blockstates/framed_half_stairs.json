@@ -1,0 +1,92 @@
+{
+ "variants": {
+  "facing=north,top=false,right=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=north,top=false,right=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_right",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=north,top=true,right=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_top",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=north,top=true,right=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_top_right",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=east,top=false,right=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=east,top=false,right=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_right",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=east,top=true,right=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_top",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=east,top=true,right=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_top_right",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=south,top=false,right=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs"
+  },
+  "facing=south,top=false,right=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_right"
+  },
+  "facing=south,top=true,right=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_top"
+  },
+  "facing=south,top=true,right=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_top_right"
+  },
+  "facing=west,top=false,right=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs",
+   "y": 90,
+   "uvlock": true
+  },
+  "facing=west,top=false,right=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_right",
+   "y": 90,
+   "uvlock": true
+  },
+  "facing=west,top=true,right=false": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_top",
+   "y": 90,
+   "uvlock": true
+  },
+  "facing=west,top=true,right=true": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/half_stairs_top_right",
+   "y": 90,
+   "uvlock": true
+  }
+ }
+}

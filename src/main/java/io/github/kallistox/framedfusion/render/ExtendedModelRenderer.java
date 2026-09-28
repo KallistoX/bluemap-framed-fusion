@@ -54,6 +54,7 @@ import de.bluecolored.bluemap.core.world.BlockState;
 import de.bluecolored.bluemap.core.world.LightData;
 import de.bluecolored.bluemap.core.world.block.BlockNeighborhood;
 import de.bluecolored.bluemap.core.world.block.ExtendedBlock;
+import io.github.kallistox.framedfusion.framed.FramedBlockEntity;
 import io.github.kallistox.framedfusion.fusion.ConnectingTexture;
 import io.github.kallistox.framedfusion.fusion.ConnectionDirection;
 import io.github.kallistox.framedfusion.fusion.ConnectionPredicate;
@@ -117,10 +118,11 @@ public class ExtendedModelRenderer implements BlockRenderer {
         Model model = variant.getModel().getResource(resourcePack::getModel);
         FusionResources.ModelInfo info = model != null && fusion != null
                 ? fusion.info(variant.getModel(), model) : FusionResources.ModelInfo.NONE;
-        if (info == FusionResources.ModelInfo.NONE) {
+        if (model == null || !rendersItself(info)) {
             fallback.render(block, variant, blockModel, color);
             return;
         }
+        beginBlock(block);
 
         this.block = block;
         this.blockModel = blockModel;
@@ -244,8 +246,9 @@ public class ExtendedModelRenderer implements BlockRenderer {
             if (p.getCullingIdentical() && b.getBlockState().equals(block.getBlockState())) return;
         }
 
-        // ####### texture
-        ResourcePath<Texture> texturePath = face.getTexture().getTexturePath(modelResource.getTextures()::get);
+        // ####### texture (from the model, or from a camouflage)
+        FaceSource source = faceSource(face, elementIndex, faceDir);
+        ResourcePath<Texture> texturePath = source.texturePath;
         int textureId = textureGallery.get(texturePath);
 
         // ####### UV
@@ -291,11 +294,10 @@ public class ExtendedModelRenderer implements BlockRenderer {
 
         // ####### face-tint
         float tintR = 1f, tintG = 1f, tintB = 1f;
-        if (face.getTintindex() >= 0) {
-            if (tintColor.a < 0) {
-                blockColorCalculator.getBlockColor(block, tintColor);
-            }
-            tintR = tintColor.r; tintG = tintColor.g; tintB = tintColor.b;
+        Color tint = null;
+        if (source.tintIndex >= 0) {
+            tint = tintColor(source.tintPart);
+            tintR = tint.r; tintG = tint.g; tintB = tint.b;
         }
 
         // ####### blocklight
@@ -310,10 +312,10 @@ public class ExtendedModelRenderer implements BlockRenderer {
             ao3 = testAo(c3, faceDir);
         }
 
-        FusionResources.FaceInfo connecting = fusionInfo.face(elementIndex, faceDir);
+        FusionResources.FaceInfo connecting = source.fusion;
         Quad quad = this.quad.set(c0, c1, c2, c3, uvs, ao0, ao1, ao2, ao3,
                 textureId, tintR, tintG, tintB, emissiveBlockLight, sunLight);
-        if (connecting == null || !connectedFace(connecting, element, quad)) {
+        if (connecting == null || !connectedFace(connecting, element, quad, source.self)) {
             emit(quad);
         }
 
@@ -323,8 +325,8 @@ public class ExtendedModelRenderer implements BlockRenderer {
             Texture texture = texturePath.getResource(resourcePack::getTexture);
             if (texture != null) {
                 mapColor.set(texture.getColorPremultiplied());
-                if (tintColor.a >= 0) {
-                    mapColor.multiply(tintColor);
+                if (tint != null) {
+                    mapColor.multiply(tint);
                 }
 
                 // apply light
@@ -354,7 +356,7 @@ public class ExtendedModelRenderer implements BlockRenderer {
      * Emits the face with the tile(s) its neighbours call for. Returns false if the face's texture axes cannot be
      * worked out; the caller then emits it unchanged.
      */
-    private boolean connectedFace(FusionResources.FaceInfo info, Element element, Quad q) {
+    private boolean connectedFace(FusionResources.FaceInfo info, Element element, Quad q, BlockState self) {
         ConnectingTexture texture = info.texture();
 
         // Directions (model space) in which the texture's u grows and v shrinks: the tile's right and up.
@@ -375,7 +377,6 @@ public class ExtendedModelRenderer implements BlockRenderer {
         // Fusion's rules name neighbours relative to the face's default texture orientation
         defaultFrame(normal);
 
-        BlockState self = appearance(block);
         int mask = 0;
         for (ConnectionDirection d : ConnectionDirection.values()) {
             int dx = right[0] * d.right + up[0] * d.up;
@@ -455,8 +456,12 @@ public class ExtendedModelRenderer implements BlockRenderer {
         return result;
     }
 
-    /** What a neighbour looks like for Fusion. Plain block state for now; Framed Blocks will show their camouflage. */
+    /** What a neighbour looks like for Fusion (Framed Blocks show their camouflage). */
     protected BlockState appearance(ExtendedBlock block) {
+        if (block.getBlockEntity() instanceof FramedBlockEntity framed) {
+            BlockState camo = framed.camo(0);
+            if (camo != null) return camo;
+        }
         return block.getBlockState();
     }
 
@@ -554,6 +559,101 @@ public class ExtendedModelRenderer implements BlockRenderer {
             out.u[i] = u[0] + a * (u[1] - u[0]) + b * (u[3] - u[0]);
             out.v[i] = v[0] + a * (v[1] - v[0]) + b * (v[3] - v[0]);
             out.ao[i] = (1 - a) * (1 - b) * ao[0] + a * (1 - b) * ao[1] + a * b * ao[2] + (1 - a) * b * ao[3];
+        }
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // Hooks for subclasses (Framed Blocks)
+
+    /** Where a face gets its texture from; reused for every face. */
+    protected static final class FaceSource {
+        public ResourcePath<Texture> texturePath;
+        public int tintIndex;
+        /** Whose tint to use, see {@link #tintColor(int)}. */
+        public int tintPart;
+        public FusionResources.FaceInfo fusion;
+        /** What the face's block looks like to Fusion. */
+        public BlockState self;
+    }
+
+    private final FaceSource faceSource = new FaceSource();
+    private final Color[] partTints = {new Color(), new Color()};
+
+    /** Whether this renderer draws the model itself; otherwise BlueMap's renderer does. */
+    protected boolean rendersItself(FusionResources.ModelInfo info) {
+        return info != FusionResources.ModelInfo.NONE;
+    }
+
+    /** Called before a block is drawn by this renderer. */
+    protected void beginBlock(BlockNeighborhood block) {
+        partTints[0].set(0, 0, 0, -1, true);
+        partTints[1].set(0, 0, 0, -1, true);
+    }
+
+    /** Texture, tint and connecting data of a face, by default straight from the model. */
+    protected FaceSource faceSource(Face face, int elementIndex, Direction faceDir) {
+        FaceSource s = faceSource;
+        s.texturePath = face.getTexture().getTexturePath(modelResource.getTextures()::get);
+        s.tintIndex = face.getTintindex();
+        s.tintPart = -1;
+        s.fusion = fusionInfo.face(elementIndex, faceDir);
+        s.self = block.getBlockState();
+        return s;
+    }
+
+    /** Tint of the block itself (-1) or of a camouflage part (0, 1), see {@link #tintState(int)}. */
+    private Color tintColor(int part) {
+        if (part < 0) {
+            if (tintColor.a < 0) blockColorCalculator.getBlockColor(block, tintColor);
+            return tintColor;
+        }
+        Color color = partTints[part];
+        if (color.a < 0) blockColorCalculator.getBlockColor(new StateOverride(block, tintState(part)), color);
+        return color;
+    }
+
+    /** The block state whose tint a camouflage part uses. */
+    protected BlockState tintState(int part) {
+        return block.getBlockState();
+    }
+
+    /** The current block. */
+    protected BlockNeighborhood block() {
+        return block;
+    }
+
+    /** The face's direction in the world, from the last face set up (valid inside {@link #faceSource}). */
+    protected Direction worldFaceDirection() {
+        int[] n = new int[3];
+        if (!toAxis(faceRotationVector, n)) return null;
+        for (Direction d : Direction.values()) {
+            Vector3i v = d.toVector();
+            if (v.getX() == n[0] && v.getY() == n[1] && v.getZ() == n[2]) return d;
+        }
+        return null;
+    }
+
+    protected ResourcePack resourcePack() {
+        return resourcePack;
+    }
+
+    protected FusionResources fusion() {
+        return fusion;
+    }
+
+    /** A block that reports another block state, to compute the tint of a camouflage. */
+    private static final class StateOverride extends BlockNeighborhood {
+        private final BlockState state;
+
+        StateOverride(BlockNeighborhood source, BlockState state) {
+            super(source, source.getResourcePack(), source.getRenderSettings(), source.getDimensionType());
+            this.state = state;
+            copyFrom(source);
+        }
+
+        @Override
+        public BlockState getBlockState() {
+            return state;
         }
     }
 

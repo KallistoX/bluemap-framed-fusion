@@ -1,0 +1,158 @@
+{
+ "variants": {
+  "facing=north,type=vertical": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_vertical",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=north,type=top_fwd": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_fwd"
+  },
+  "facing=north,type=top_ccw": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_ccw"
+  },
+  "facing=north,type=top_both": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_both",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=north,type=bottom_fwd": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_fwd"
+  },
+  "facing=north,type=bottom_ccw": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_ccw"
+  },
+  "facing=north,type=bottom_both": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_both",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=east,type=vertical": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_vertical",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=east,type=top_fwd": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_fwd",
+   "y": 90,
+   "uvlock": true
+  },
+  "facing=east,type=top_ccw": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_ccw",
+   "y": 90,
+   "uvlock": true
+  },
+  "facing=east,type=top_both": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_both",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=east,type=bottom_fwd": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_fwd",
+   "y": 90,
+   "uvlock": true
+  },
+  "facing=east,type=bottom_ccw": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_ccw",
+   "y": 90,
+   "uvlock": true
+  },
+  "facing=east,type=bottom_both": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_both",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=south,type=vertical": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_vertical"
+  },
+  "facing=south,type=top_fwd": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_fwd",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=south,type=top_ccw": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_ccw",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=south,type=top_both": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_both"
+  },
+  "facing=south,type=bottom_fwd": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_fwd",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=south,type=bottom_ccw": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_ccw",
+   "y": 180,
+   "uvlock": true
+  },
+  "facing=south,type=bottom_both": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_both"
+  },
+  "facing=west,type=vertical": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_vertical",
+   "y": 90,
+   "uvlock": true
+  },
+  "facing=west,type=top_fwd": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_fwd",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=west,type=top_ccw": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_ccw",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=west,type=top_both": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_top_both",
+   "y": 90,
+   "uvlock": true
+  },
+  "facing=west,type=bottom_fwd": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_fwd",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=west,type=bottom_ccw": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_ccw",
+   "y": 270,
+   "uvlock": true
+  },
+  "facing=west,type=bottom_both": {
+   "renderer": "framedfusion:framed",
+   "model": "framedfusion:block/vertical_stairs_bottom_both",
+   "y": 90,
+   "uvlock": true
+  }
+ }
+}

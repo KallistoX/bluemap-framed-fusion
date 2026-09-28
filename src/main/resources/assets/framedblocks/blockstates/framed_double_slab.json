@@ -1,0 +1,16 @@
+{
+ "multipart": [
+  {
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab"
+   }
+  },
+  {
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "framedfusion:block/slab_top_two"
+   }
+  }
+ ]
+}
