@@ -145,6 +145,13 @@ public class ExtendedModelRenderer implements BlockRenderer {
             }
         }
 
+        // extra geometry of subclasses (block pixels, not rotated by the variant)
+        this.blockModel = blockModel;
+        int extraStart = blockModel.initialize().getStart();
+        renderExtra();
+        blockModel.initialize(extraStart);
+        if (blockModel.getSize() > 0) blockModel.scale(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE);
+
         if (color.a > 0) {
             color.flatten().straight();
             color.a = blockColorOpacity;
@@ -244,6 +251,7 @@ public class ExtendedModelRenderer implements BlockRenderer {
             BlockProperties p = b.getProperties();
             if (p.isCulling()) return;
             if (p.getCullingIdentical() && b.getBlockState().equals(block.getBlockState())) return;
+            if (cullsBoxFace(face, b)) return;
         }
 
         // ####### texture (from the model, or from a camouflage)
@@ -382,7 +390,7 @@ public class ExtendedModelRenderer implements BlockRenderer {
             int dx = right[0] * d.right + up[0] * d.up;
             int dy = right[1] * d.right + up[1] * d.up;
             int dz = right[2] * d.right + up[2] * d.up;
-            BlockState other = appearance(block.getNeighborBlock(dx, dy, dz));
+            BlockState other = appearance(block.getNeighborBlock(dx, dy, dz), self);
             BlockState inFront = block.getNeighborBlock(dx + normal[0], dy + normal[1], dz + normal[2]).getBlockState();
             int r = dx * defRight[0] + dy * defRight[1] + dz * defRight[2];
             int u = dx * defUp[0] + dy * defUp[1] + dz * defUp[2];
@@ -457,12 +465,21 @@ public class ExtendedModelRenderer implements BlockRenderer {
     }
 
     /** What a neighbour looks like for Fusion (Framed Blocks show their camouflage). */
-    protected BlockState appearance(ExtendedBlock block) {
+    protected BlockState appearance(ExtendedBlock block, BlockState self) {
         if (block.getBlockEntity() instanceof FramedBlockEntity framed) {
+            // Framed shows the camouflage of the part on the touching side; the part that looks like us is a
+            // good guess for double blocks
+            BlockState second = framed.camo(1);
+            if (second != null && second.getFormatted().equals(self.getFormatted())) return second;
             BlockState camo = framed.camo(0);
             if (camo != null) return camo;
         }
         return block.getBlockState();
+    }
+
+    /** Whether the neighbour in {@code dir} has a face that exactly covers the current face on that side. */
+    protected boolean coveredBy(ExtendedBlock neighbour, Direction dir) {
+        return false;
     }
 
     private void defaultFrame(int[] n) {
@@ -601,8 +618,74 @@ public class ExtendedModelRenderer implements BlockRenderer {
         return s;
     }
 
+    /** Extra culling of a model face with a cullface against the neighbour there. */
+    protected boolean cullsBoxFace(Face face, ExtendedBlock neighbour) {
+        return false;
+    }
+
+    /** Whether the model drawn right now fills the whole block. */
+    protected boolean modelIsFullCube() {
+        return modelResource != null && modelResource.isOccluding();
+    }
+
+    /** Draws geometry that is not part of the model; called after the model's elements. */
+    protected void renderExtra() {}
+
+    /**
+     * Draws one flat polygon (block pixels, corners counter-clockwise seen from outside) for {@link #renderExtra}:
+     * light from the neighbour in {@code lightDir}, skipped if the neighbour in {@code cullDir} covers it.
+     */
+    protected void emitPolygon(float[][] points, float[][] uvs, Direction lightDir, Direction cullDir, boolean up,
+                               ResourcePath<Texture> texturePath, Color tint) {
+        ExtendedBlock facing = block.getNeighborBlock(lightDir.toVector().getX(), lightDir.toVector().getY(), lightDir.toVector().getZ());
+        LightData own = block.getLightData(), other = facing.getLightData();
+        int sunLight = Math.max(own.getSkyLight(), other.getSkyLight());
+        int blockLight = Math.max(own.getBlockLight(), other.getBlockLight());
+        if (block.isRemoveIfCave() &&
+                (renderSettings.isCaveDetectionUsesBlockLight() ? Math.max(blockLight, sunLight) : sunLight) == 0) return;
+        if (renderSettings.isRenderTopOnly() && !up) return;
+        if (cullDir != null) {
+            Vector3i v = cullDir.toVector();
+            ExtendedBlock neighbour = block.getNeighborBlock(v.getX(), v.getY(), v.getZ());
+            if (neighbour.getProperties().isCulling()) return;
+            if (coveredBy(neighbour, cullDir)) return;
+        }
+
+        int textureId = textureGallery.get(texturePath);
+        float r = tint != null ? tint.r : 1f, g = tint != null ? tint.g : 1f, b = tint != null ? tint.b : 1f;
+        TileModel tileModel = blockModel.getTileModel();
+        for (int i = 1; i + 1 < points.length; i++) {
+            blockModel.initialize();
+            blockModel.add(1);
+            int f = blockModel.getStart();
+            float[] p0 = points[0], p1 = points[i], p2 = points[i + 1];
+            tileModel.setPositions(f, p0[0], p0[1], p0[2], p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]);
+            tileModel.setUvs(f, uvs[0][0], uvs[0][1], uvs[i][0], uvs[i][1], uvs[i + 1][0], uvs[i + 1][1]);
+            tileModel.setMaterialIndex(f, textureId);
+            tileModel.setColor(f, r, g, b);
+            tileModel.setBlocklight(f, blockLight);
+            tileModel.setSunlight(f, sunLight);
+            tileModel.setAOs(f, 1f, 1f, 1f);
+        }
+
+        if (up && texturePath != null) {
+            Texture texture = texturePath.getResource(resourcePack::getTexture);
+            if (texture != null) {
+                mapColor.set(texture.getColorPremultiplied());
+                if (tint != null) mapColor.multiply(tint);
+                float combinedLight = Math.max(sunLight / 15f, blockLight / 15f);
+                combinedLight = (1 - renderSettings.getAmbientLight()) * combinedLight + renderSettings.getAmbientLight();
+                mapColor.r *= combinedLight;
+                mapColor.g *= combinedLight;
+                mapColor.b *= combinedLight;
+                if (mapColor.a > blockColorOpacity) blockColorOpacity = mapColor.a;
+                blockColor.add(mapColor);
+            }
+        }
+    }
+
     /** Tint of the block itself (-1) or of a camouflage part (0, 1), see {@link #tintState(int)}. */
-    private Color tintColor(int part) {
+    protected Color tintColor(int part) {
         if (part < 0) {
             if (tintColor.a < 0) blockColorCalculator.getBlockColor(block, tintColor);
             return tintColor;

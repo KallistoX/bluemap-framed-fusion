@@ -18,10 +18,15 @@ import de.bluecolored.bluemap.core.util.Key;
 import de.bluecolored.bluemap.core.util.math.VectorM3f;
 import de.bluecolored.bluemap.core.world.BlockState;
 import de.bluecolored.bluemap.core.world.block.BlockNeighborhood;
+import de.bluecolored.bluemap.core.world.block.ExtendedBlock;
 import io.github.kallistox.framedfusion.framed.FramedBlockEntity;
+import io.github.kallistox.framedfusion.framed.FramedShapes;
+import io.github.kallistox.framedfusion.framed.Hull;
+import io.github.kallistox.framedfusion.framed.Solid;
 import io.github.kallistox.framedfusion.fusion.FusionResources;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -78,6 +83,148 @@ public class FramedModelRenderer extends ExtendedModelRenderer {
         s.fusion = camoFace.fusion;
         s.self = state;
         return s;
+    }
+
+    private static final java.util.concurrent.ConcurrentHashMap<BlockState, ShapeFace[]> SHAPE_FACES = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final List<Solid> FRAME_CUBE = List.of(Solid.prism(-1, false, 0, 0, 0, 16, 16, 0, 16, 16));
+
+    /** A face of a coded shape, ready to draw: corners, uv, and where its texture and light come from. */
+    private record ShapeFace(float[][] points, float[][] uvs, int part, Direction source, Direction light, Direction cull,
+                             boolean up, String footprint) {}
+
+    private ShapeFace currentFace;
+
+    /**
+     * A coded face on the block boundary is hidden if the neighbour has the same shape and that shape has a face of
+     * the same outline on the opposite side (they lie on top of each other).
+     */
+    @Override
+    protected boolean coveredBy(ExtendedBlock neighbour, Direction dir) {
+        if (currentFace == null || !neighbour.getBlockState().equals(block().getBlockState())) return false;
+        Direction opposite = dir.opposite();
+        for (ShapeFace other : SHAPE_FACES.get(block().getBlockState())) {
+            if (other.cull == opposite && other.footprint.equals(currentFace.footprint)) return true;
+        }
+        return false;
+    }
+
+    /** Full cubes (e.g. framed glass cubes) hide the faces towards an identical neighbour with the same camouflage. */
+    @Override
+    protected boolean cullsBoxFace(Face face, ExtendedBlock neighbour) {
+        if (!modelIsFullCube() || !neighbour.getBlockState().equals(block().getBlockState())) return false;
+        if (!(neighbour.getBlockEntity() instanceof FramedBlockEntity other)) return false;
+        int part = SECOND_CAMO.equals(face.getTexture().getReferenceName()) ? 1 : 0;
+        return camo[part] != null && camo[part].equals(other.camo(part));
+    }
+
+    @Override
+    protected void renderExtra() {
+        BlockState state = block().getBlockState();
+        if (!FramedShapes.covers(state.getFormatted())) return;
+        ShapeFace[] faces = SHAPE_FACES.computeIfAbsent(state, FramedModelRenderer::shapeFaces);
+        for (ShapeFace face : faces) {
+            BlockState camoState = face.part >= 0 ? camo[face.part] : null;
+            CamoFace camoFace = camoState != null ? camoFaces(camoState)[face.source.ordinal()] : null;
+            float[][] uvs = face.uvs;
+            currentFace = face;
+            if (camoFace == null) {
+                emitPolygon(face.points, uvs, face.light, face.cull, face.up, FRAME, null);
+                continue;
+            }
+            if (camoFace.fusion() != null) uvs = connectedTile(camoFace.fusion().texture(), uvs);
+            emitPolygon(face.points, uvs, face.light, face.cull, face.up, camoFace.texturePath(),
+                    camoFace.tintIndex() >= 0 ? tintColor(face.part) : null);
+        }
+        currentFace = null;
+    }
+
+    /**
+     * Coded (sloped) shapes show the tile of a connecting texture that is connected on all sides: they are mostly
+     * parts of larger areas (glass roofs), and for borderless textures that is the tile without a frame.
+     */
+    private static float[][] connectedTile(io.github.kallistox.framedfusion.fusion.ConnectingTexture texture, float[][] uvs) {
+        int tile = texture.layout() == io.github.kallistox.framedfusion.fusion.Layout.PIECED ? 1 : texture.layout().tile(0xFF);
+        float[][] out = new float[uvs.length][];
+        for (int i = 0; i < uvs.length; i++) out[i] = new float[]{texture.u(tile, uvs[i][0]), texture.v(tile, uvs[i][1])};
+        return out;
+    }
+
+    private static ShapeFace[] shapeFaces(BlockState state) {
+        List<Solid> solids = FramedShapes.of(state);
+        if (solids == null) solids = FRAME_CUBE;
+        List<ShapeFace> out = new java.util.ArrayList<>();
+        for (Solid solid : solids) {
+            for (Hull.Polygon polygon : Hull.faces(solid.points())) {
+                float[] n = polygon.normal();
+                Direction axis = axisOf(n);
+                Direction source;
+                if (axis != null) source = axis;
+                else if (solid.slopeSource() != null) source = Direction.fromString(solid.slopeSource());
+                else if (solid.ySlope() && Math.abs(n[1]) > 0.01f) source = n[1] > 0 ? Direction.UP : Direction.DOWN;
+                else if (Math.abs(n[0]) > Math.abs(n[2])) source = n[0] > 0 ? Direction.EAST : Direction.WEST;
+                else source = n[2] > 0 ? Direction.SOUTH : Direction.NORTH;
+                Direction light = axis != null ? axis : dominant(n);
+                Direction cull = axis != null && onBoundary(polygon.points(), axis) ? axis : null;
+                float[][] pts = polygon.points().toArray(new float[0][]);
+                float[][] uvs = new float[pts.length][];
+                for (int i = 0; i < pts.length; i++) uvs[i] = defaultUv(source, pts[i]);
+                out.add(new ShapeFace(pts, uvs, solid.part(), source, light, cull, n[1] > 0.01f,
+                        cull != null ? footprint(pts, cull) : ""));
+            }
+        }
+        return out.toArray(new ShapeFace[0]);
+    }
+
+    /** The outline of a boundary face in its plane, independent of the side it is on. */
+    private static String footprint(float[][] pts, Direction side) {
+        Vector3i v = side.toVector();
+        int drop = v.getX() != 0 ? 0 : v.getY() != 0 ? 1 : 2;
+        java.util.List<String> corners = new java.util.ArrayList<>();
+        for (float[] p : pts) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 3; i++) if (i != drop) sb.append(Math.round(p[i] * 8)).append(',');
+            corners.add(sb.toString());
+        }
+        java.util.Collections.sort(corners);
+        return String.join(";", corners);
+    }
+
+    /** Vanilla's default uv of a face pointing in {@code dir}, for a point in block pixels (0..1 result). */
+    private static float[] defaultUv(Direction dir, float[] p) {
+        float x = p[0], y = p[1], z = p[2];
+        float u, v;
+        switch (dir) {
+            case DOWN -> { u = x; v = 16 - z; }
+            case UP -> { u = x; v = z; }
+            case NORTH -> { u = 16 - x; v = 16 - y; }
+            case SOUTH -> { u = x; v = 16 - y; }
+            case WEST -> { u = z; v = 16 - y; }
+            default -> { u = 16 - z; v = 16 - y; }
+        }
+        return new float[]{u / 16f, v / 16f};
+    }
+
+    private static Direction axisOf(float[] n) {
+        for (Direction d : DIRECTIONS) {
+            Vector3i v = d.toVector();
+            if (n[0] * v.getX() + n[1] * v.getY() + n[2] * v.getZ() > 0.999f) return d;
+        }
+        return null;
+    }
+
+    private static Direction dominant(float[] n) {
+        float ax = Math.abs(n[0]), ay = Math.abs(n[1]), az = Math.abs(n[2]);
+        if (ay >= ax && ay >= az) return n[1] > 0 ? Direction.UP : Direction.DOWN;
+        if (ax >= az) return n[0] > 0 ? Direction.EAST : Direction.WEST;
+        return n[2] > 0 ? Direction.SOUTH : Direction.NORTH;
+    }
+
+    private static boolean onBoundary(List<float[]> points, Direction axis) {
+        Vector3i v = axis.toVector();
+        int i = v.getX() != 0 ? 0 : v.getY() != 0 ? 1 : 2;
+        float target = (v.getX() + v.getY() + v.getZ()) > 0 ? 16 : 0;
+        for (float[] p : points) if (Math.abs(p[i] - target) > 1e-3f) return false;
+        return true;
     }
 
     @Override

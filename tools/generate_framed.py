@@ -253,6 +253,12 @@ def blockstates():
     return out
 
 
+# Shapes with sloped faces come from the addon's code (FramedShapes); their blockstate only picks the renderer.
+CODED = ["framed_slope", "framed_double_slope", "framed_slope_edge", "framed_elevated_slope_edge",
+         "framed_elevated_double_slope_edge", "framed_slope_panel", "framed_extended_slope_panel",
+         "framed_extended_double_slope_panel", "framed_compound_slope_panel", "framed_prism"]
+
+
 def wall(client):
     with zipfile.ZipFile(client) as z:
         state = json.loads(z.read("assets/minecraft/blockstates/cobblestone_wall.json"))
@@ -272,6 +278,9 @@ def main():
     write_models()
     states = blockstates()
     states["framed_wall"] = wall(client)  # FramedWallBlock: vanilla wall shape
+    models["empty"] = {"textures": {"particle": FRAME}, "elements": []}
+    for name in CODED:
+        states[name] = {"variants": {"": {"renderer": RENDERER, "model": "framedfusion:block/empty"}}}
 
     for sub in ("framedblocks/blockstates", "framedfusion/models/block"):
         shutil.rmtree(os.path.join(OUT, sub), ignore_errors=True)
