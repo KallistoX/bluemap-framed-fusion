@@ -1,0 +1,12 @@
+{
+ "variants": {
+  "powered=false": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/stone_pressure_plate"
+  },
+  "powered=true": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/stone_pressure_plate_down"
+  }
+ }
+}

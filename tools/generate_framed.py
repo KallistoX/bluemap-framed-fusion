@@ -71,13 +71,21 @@ VERTICAL_BASE = {"vertical": "south", "top_fwd": "north", "top_ccw": "north", "t
 models = {}
 
 
+def faces(f, t, camo):
+    """All six faces; those on the block side get an explicit cullface (BlueMap 5.7's default only works for
+    down/north/west)."""
+    on_side = {"down": f[1] == 0, "up": t[1] == 16, "north": f[2] == 0, "south": t[2] == 16,
+               "west": f[0] == 0, "east": t[0] == 16}
+    return {d: {"texture": "#" + camo, **({"cullface": d} if on_side[d] else {})}
+            for d in ("down", "up", "north", "south", "west", "east")}
+
+
 def write_models():
     for name, boxes in BOXES.items():
         for suffix, camo in (("", "camo"), ("_two", "camo_two")):
-            faces = {d: {"texture": "#" + camo} for d in ("down", "up", "north", "south", "west", "east")}
             models[name + suffix] = {
                 "textures": {camo: FRAME, "particle": FRAME},
-                "elements": [{"from": list(f), "to": list(t), "faces": faces} for f, t in boxes],
+                "elements": [{"from": list(f), "to": list(t), "faces": faces(f, t, camo)} for f, t in boxes],
             }
 
 
@@ -256,7 +264,40 @@ def blockstates():
 # Shapes with sloped faces come from the addon's code (FramedShapes); their blockstate only picks the renderer.
 CODED = ["framed_slope", "framed_double_slope", "framed_slope_edge", "framed_elevated_slope_edge",
          "framed_elevated_double_slope_edge", "framed_slope_panel", "framed_extended_slope_panel",
-         "framed_extended_double_slope_panel", "framed_compound_slope_panel", "framed_prism"]
+         "framed_extended_double_slope_panel", "framed_compound_slope_panel", "framed_prism",
+         "framed_corner_slope_edge", "framed_inner_corner_slope_edge", "framed_elevated_corner_slope_edge",
+         "framed_elevated_inner_corner_slope_edge", "framed_flat_slope_panel_corner", "framed_flat_inner_slope_panel_corner",
+         "framed_flat_ext_slope_panel_corner", "framed_flat_ext_double_slope_panel_corner"]
+
+
+# Framed blocks that extend a vanilla block class (same properties, same shape): vanilla's blockstate and models give
+# the geometry, the renderer puts the camouflage on it.
+VANILLA_SHAPES = {
+    "framed_door": "oak_door", "framed_iron_door": "iron_door",
+    "framed_trapdoor": "oak_trapdoor", "framed_iron_trapdoor": "iron_trapdoor",
+    "framed_pressure_plate": "oak_pressure_plate", "framed_waterloggable_pressure_plate": "oak_pressure_plate",
+    "framed_stone_pressure_plate": "stone_pressure_plate", "framed_waterloggable_stone_pressure_plate": "stone_pressure_plate",
+    "framed_obsidian_pressure_plate": "stone_pressure_plate", "framed_waterloggable_obsidian_pressure_plate": "stone_pressure_plate",
+    "framed_gold_pressure_plate": "light_weighted_pressure_plate", "framed_waterloggable_gold_pressure_plate": "light_weighted_pressure_plate",
+    "framed_iron_pressure_plate": "heavy_weighted_pressure_plate", "framed_waterloggable_iron_pressure_plate": "heavy_weighted_pressure_plate",
+    "framed_fence": "oak_fence", "framed_fence_gate": "oak_fence_gate",
+    "framed_pane": "glass_pane", "framed_bars": "iron_bars",
+    "framed_button": "oak_button", "framed_stone_button": "stone_button", "framed_lever": "lever",
+}
+
+
+def vanilla_shape(client, name):
+    with zipfile.ZipFile(client) as z:
+        state = json.loads(z.read(f"assets/minecraft/blockstates/{name}.json"))
+
+    def convert(v):
+        if isinstance(v, list): return [convert(x) for x in v]
+        return {"renderer": RENDERER, **v}
+
+    if "variants" in state:
+        return {"variants": {k: convert(v) for k, v in state["variants"].items()}}
+    return {"multipart": [{**({"when": p["when"]} if "when" in p else {}), "apply": convert(p["apply"])}
+                          for p in state["multipart"]]}
 
 
 def wall(client):
@@ -278,6 +319,8 @@ def main():
     write_models()
     states = blockstates()
     states["framed_wall"] = wall(client)  # FramedWallBlock: vanilla wall shape
+    for target, name in VANILLA_SHAPES.items():
+        states[target] = vanilla_shape(client, name)
     models["empty"] = {"textures": {"particle": FRAME}, "elements": []}
     for name in CODED:
         states[name] = {"variants": {"": {"renderer": RENDERER, "model": "framedfusion:block/empty"}}}

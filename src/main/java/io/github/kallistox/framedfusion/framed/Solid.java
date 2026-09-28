@@ -59,6 +59,36 @@ public record Solid(List<float[]> points, int part, boolean ySlope, String slope
         return map((x, y, z) -> new float[]{y, x, z});
     }
 
+    /** The common part of two convex solids (for outer corners); keeps this solid's part and slope settings. */
+    public Solid intersect(Solid other) {
+        List<float[]> planes = new ArrayList<>();
+        for (Solid s : List.of(this, other)) {
+            for (Hull.Polygon f : Hull.faces(s.points)) {
+                float[] n = f.normal();
+                planes.add(new float[]{n[0], n[1], n[2], Hull.dot(n, f.points().get(0))});
+            }
+        }
+        List<float[]> out = new ArrayList<>();
+        for (int i = 0; i < planes.size(); i++) for (int j = i + 1; j < planes.size(); j++) for (int k = j + 1; k < planes.size(); k++) {
+            float[] p = solve(planes.get(i), planes.get(j), planes.get(k));
+            if (p == null) continue;
+            boolean inside = true;
+            for (float[] pl : planes) if (pl[0] * p[0] + pl[1] * p[1] + pl[2] * p[2] > pl[3] + 1e-3f) { inside = false; break; }
+            if (inside) out.add(p);
+        }
+        return new Solid(out, part, ySlope, slopeSource);
+    }
+
+    /** Point where three planes (n . p = d) meet, {@code null} if they do not meet in one point. */
+    private static float[] solve(float[] a, float[] b, float[] c) {
+        float det = a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0]);
+        if (Math.abs(det) < 1e-6f) return null;
+        float x = (a[3] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[3] * c[2] - b[2] * c[3]) + a[2] * (b[3] * c[1] - b[1] * c[3])) / det;
+        float y = (a[0] * (b[3] * c[2] - b[2] * c[3]) - a[3] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[3] - b[3] * c[0])) / det;
+        float z = (a[0] * (b[1] * c[3] - b[3] * c[1]) - a[1] * (b[0] * c[3] - b[3] * c[0]) + a[3] * (b[0] * c[1] - b[1] * c[0])) / det;
+        return new float[]{x, y, z};
+    }
+
     /** Moves by (dx, dy, dz) pixels. */
     public Solid translate(float dx, float dy, float dz) {
         return map((x, y, z) -> new float[]{x + dx, y + dy, z + dz});

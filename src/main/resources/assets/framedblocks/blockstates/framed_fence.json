@@ -1,0 +1,53 @@
+{
+ "multipart": [
+  {
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/oak_fence_post"
+   }
+  },
+  {
+   "when": {
+    "north": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/oak_fence_side",
+    "uvlock": true
+   }
+  },
+  {
+   "when": {
+    "east": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/oak_fence_side",
+    "uvlock": true,
+    "y": 90
+   }
+  },
+  {
+   "when": {
+    "south": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/oak_fence_side",
+    "uvlock": true,
+    "y": 180
+   }
+  },
+  {
+   "when": {
+    "west": "true"
+   },
+   "apply": {
+    "renderer": "framedfusion:framed",
+    "model": "minecraft:block/oak_fence_side",
+    "uvlock": true,
+    "y": 270
+   }
+  }
+ ]
+}

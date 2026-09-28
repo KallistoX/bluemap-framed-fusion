@@ -323,6 +323,7 @@ public class ExtendedModelRenderer implements BlockRenderer {
         FusionResources.FaceInfo connecting = source.fusion;
         Quad quad = this.quad.set(c0, c1, c2, c3, uvs, ao0, ao1, ao2, ao3,
                 textureId, tintR, tintG, tintB, emissiveBlockLight, sunLight);
+        if (source.textureUp != null) turnTexture(quad.p, quad.u, quad.v, element, source.textureUp);
         if (connecting == null || !connectedFace(connecting, element, quad, source.self)) {
             emit(quad);
         }
@@ -591,6 +592,8 @@ public class ExtendedModelRenderer implements BlockRenderer {
         public FusionResources.FaceInfo fusion;
         /** What the face's block looks like to Fusion. */
         public BlockState self;
+        /** World direction the texture's top should point to (rotated camouflage), {@code null} = as drawn. */
+        public int[] textureUp;
     }
 
     private final FaceSource faceSource = new FaceSource();
@@ -615,6 +618,7 @@ public class ExtendedModelRenderer implements BlockRenderer {
         s.tintPart = -1;
         s.fusion = fusionInfo.face(elementIndex, faceDir);
         s.self = block.getBlockState();
+        s.textureUp = null;
         return s;
     }
 
@@ -682,6 +686,40 @@ public class ExtendedModelRenderer implements BlockRenderer {
                 blockColor.add(mapColor);
             }
         }
+    }
+
+    /**
+     * Turns a face's uv in quarter steps until the texture's top points to {@code wantedUp} in the world (for rotated
+     * camouflage such as lying logs). Positions are in model pixels; {@code element} may be null (no element rotation).
+     */
+    protected void turnTexture(VectorM3f[] p, float[] u, float[] v, Element element, int[] wantedUp) {
+        float[] u0 = u.clone(), v0 = v.clone();
+        for (int k = 0; k < 4; k++) {
+            for (int i = 0; i < 4; i++) {
+                float uu = u0[i], vv = v0[i];
+                for (int t = 0; t < k; t++) { float nu = 1 - vv; vv = uu; uu = nu; }
+                u[i] = uu;
+                v[i] = vv;
+            }
+            int[] up = textureUp(p, u, v, element);
+            if (up != null && up[0] == wantedUp[0] && up[1] == wantedUp[1] && up[2] == wantedUp[2]) return;
+        }
+        System.arraycopy(u0, 0, u, 0, 4);
+        System.arraycopy(v0, 0, v, 0, 4);
+    }
+
+    /** World direction of a face's texture top (v decreasing), rounded to an axis; {@code null} if degenerate. */
+    protected int[] textureUp(VectorM3f[] p, float[] u, float[] v, Element element) {
+        float e1x = p[1].x - p[0].x, e1y = p[1].y - p[0].y, e1z = p[1].z - p[0].z;
+        float e2x = p[3].x - p[0].x, e2y = p[3].y - p[0].y, e2z = p[3].z - p[0].z;
+        float d1u = u[1] - u[0], d1v = v[1] - v[0], d2u = u[3] - u[0], d2v = v[3] - v[0];
+        float det = d1u * d2v - d2u * d1v;
+        if (Math.abs(det) < EPSILON) return null;
+        VectorM3f up = new VectorM3f(-(e2x * d1u - e1x * d2u) / det, -(e2y * d1u - e1y * d2u) / det, -(e2z * d1u - e1z * d2u) / det);
+        if (element != null) up.rotateAndScale(element.getRotation().getMatrix());
+        makeRotationRelative(up);
+        int[] out = new int[3];
+        return toAxis(up, out) ? out : null;
     }
 
     /** Tint of the block itself (-1) or of a camouflage part (0, 1), see {@link #tintState(int)}. */

@@ -82,6 +82,7 @@ public class FramedModelRenderer extends ExtendedModelRenderer {
         s.tintPart = part;
         s.fusion = camoFace.fusion;
         s.self = state;
+        s.textureUp = camoFace.textureUp;
         return s;
     }
 
@@ -100,7 +101,9 @@ public class FramedModelRenderer extends ExtendedModelRenderer {
      */
     @Override
     protected boolean coveredBy(ExtendedBlock neighbour, Direction dir) {
-        if (currentFace == null || !neighbour.getBlockState().equals(block().getBlockState())) return false;
+        if (currentFace == null) return false;
+        if (hiddenBehind(neighbour, currentFace.part >= 0 ? camo[currentFace.part] : null)) return true;
+        if (!neighbour.getBlockState().equals(block().getBlockState())) return false;
         Direction opposite = dir.opposite();
         for (ShapeFace other : SHAPE_FACES.get(block().getBlockState())) {
             if (other.cull == opposite && other.footprint.equals(currentFace.footprint)) return true;
@@ -108,13 +111,82 @@ public class FramedModelRenderer extends ExtendedModelRenderer {
         return false;
     }
 
-    /** Full cubes (e.g. framed glass cubes) hide the faces towards an identical neighbour with the same camouflage. */
+    /** Model faces on the block side are hidden behind a full side of a Framed neighbour (see {@link #hiddenBehind}). */
     @Override
     protected boolean cullsBoxFace(Face face, ExtendedBlock neighbour) {
-        if (!modelIsFullCube() || !neighbour.getBlockState().equals(block().getBlockState())) return false;
-        if (!(neighbour.getBlockEntity() instanceof FramedBlockEntity other)) return false;
         int part = SECOND_CAMO.equals(face.getTexture().getReferenceName()) ? 1 : 0;
-        return camo[part] != null && camo[part].equals(other.camo(part));
+        return hiddenBehind(neighbour, camo[part]);
+    }
+
+    /**
+     * Whether a Framed neighbour covers the whole side towards this block with a camouflage that hides our face:
+     * an opaque one, or the same one (glass next to the same glass), as the game does.
+     */
+    private boolean hiddenBehind(ExtendedBlock neighbour, BlockState ownCamo) {
+        if (!(neighbour.getBlockEntity() instanceof FramedBlockEntity other)) return false;
+        Direction towardsUs = direction(block().getX() - neighbour.getX(), block().getY() - neighbour.getY(), block().getZ() - neighbour.getZ());
+        if (towardsUs == null) return false;
+        int part = fullSides(neighbour.getBlockState())[towardsUs.ordinal()];
+        if (part < 0) return false;
+        BlockState theirs = other.camo(part);
+        if (theirs == null) return false;
+        return theirs.equals(ownCamo) || resourcePack().getBlockProperties(theirs).isCulling();
+    }
+
+    private final Map<BlockState, int[]> fullSides = new HashMap<>();
+    private static final String FULL_SIDE = footprint(new float[][]{{0, 0, 0}, {16, 0, 0}, {0, 16, 0}, {16, 16, 0}}, Direction.SOUTH);
+
+    /** For a Framed block state: which part covers each whole side (index = Direction ordinal), -1 = none. */
+    private int[] fullSides(BlockState state) {
+        return fullSides.computeIfAbsent(state, s -> {
+            int[] sides = new int[DIRECTIONS.length];
+            java.util.Arrays.fill(sides, -1);
+            if (FramedShapes.covers(s.getFormatted())) {
+                for (ShapeFace f : SHAPE_FACES.computeIfAbsent(s, FramedModelRenderer::shapeFaces)) {
+                    if (f.cull != null && f.footprint.equals(FULL_SIDE) && f.part >= 0) sides[f.cull.ordinal()] = f.part;
+                }
+                return sides;
+            }
+            var resource = resourcePack().getBlockState(s);
+            if (resource == null) return sides;
+            resource.forEach(s, 0, 0, 0, variant -> {
+                Model model = variant.getModel().getResource(resourcePack()::getModel);
+                if (model == null || model.getElements() == null) return;
+                for (Element element : model.getElements()) {
+                    if (element == null || element.getRotation().getAngle() != 0) continue;
+                    for (Direction dir : DIRECTIONS) {
+                        Face face = element.getFaces().get(dir);
+                        if (face == null || !coversSide(element, dir)) continue;
+                        Direction world = rotate(dir, variant);
+                        if (world != null) sides[world.ordinal()] = SECOND_CAMO.equals(face.getTexture().getReferenceName()) ? 1 : 0;
+                    }
+                }
+            });
+            return sides;
+        });
+    }
+
+    /** Whether an element's face lies on the block side {@code dir} and covers all of it. */
+    private static boolean coversSide(Element element, Direction dir) {
+        Vector3f from = element.getFrom(), to = element.getTo();
+        float[] min = {Math.min(from.getX(), to.getX()), Math.min(from.getY(), to.getY()), Math.min(from.getZ(), to.getZ())};
+        float[] max = {Math.max(from.getX(), to.getX()), Math.max(from.getY(), to.getY()), Math.max(from.getZ(), to.getZ())};
+        Vector3i v = dir.toVector();
+        int axis = v.getX() != 0 ? 0 : v.getY() != 0 ? 1 : 2;
+        boolean positive = v.getX() + v.getY() + v.getZ() > 0;
+        if (positive ? max[axis] < 16 - 1e-3f : min[axis] > 1e-3f) return false;
+        for (int i = 0; i < 3; i++) {
+            if (i != axis && (min[i] > 1e-3f || max[i] < 16 - 1e-3f)) return false;
+        }
+        return true;
+    }
+
+    private static Direction direction(int dx, int dy, int dz) {
+        for (Direction d : DIRECTIONS) {
+            Vector3i v = d.toVector();
+            if (v.getX() == dx && v.getY() == dy && v.getZ() == dz) return d;
+        }
+        return null;
     }
 
     @Override
@@ -131,6 +203,7 @@ public class FramedModelRenderer extends ExtendedModelRenderer {
                 emitPolygon(face.points, uvs, face.light, face.cull, face.up, FRAME, null);
                 continue;
             }
+            if (camoFace.textureUp() != null && face.points.length == 4) uvs = turned(face, camoFace.textureUp());
             if (camoFace.fusion() != null) uvs = connectedTile(camoFace.fusion().texture(), uvs);
             emitPolygon(face.points, uvs, face.light, face.cull, face.up, camoFace.texturePath(),
                     camoFace.tintIndex() >= 0 ? tintColor(face.part) : null);
@@ -268,9 +341,63 @@ public class FramedModelRenderer extends ExtendedModelRenderer {
             Face face = elements[best].getFaces().get(modelDir);
             ResourcePath<Texture> texture = face.getTexture().getTexturePath(model.getTextures()::get);
             if (texture == null) continue;
-            faces[world.ordinal()] = new CamoFace(texture, face.getTintindex(), info.face(best, modelDir));
+            faces[world.ordinal()] = new CamoFace(texture, face.getTintindex(), info.face(best, modelDir),
+                    camoTextureUp(elements[best], face, modelDir, variant));
         }
         return faces;
+    }
+
+    /** UVs of a coded quad face, turned so that the camouflage's texture top points to {@code up}. */
+    private float[][] turned(ShapeFace face, int[] up) {
+        VectorM3f[] p = new VectorM3f[4];
+        float[] u = new float[4], v = new float[4];
+        for (int i = 0; i < 4; i++) {
+            p[i] = new VectorM3f(face.points[i][0], face.points[i][1], face.points[i][2]);
+            u[i] = face.uvs[i][0];
+            v[i] = face.uvs[i][1];
+        }
+        turnTexture(p, u, v, null, up);
+        float[][] out = new float[4][];
+        for (int i = 0; i < 4; i++) out[i] = new float[]{u[i], v[i]};
+        return out;
+    }
+
+    /**
+     * World direction the texture top of a camouflage face points to, if the camouflage block is rotated without
+     * uvlock (lying logs); {@code null} otherwise. Corners and uv as BlueMap builds the face.
+     */
+    static int[] camoTextureUp(Element element, Face face, Direction dir, Variant variant) {
+        if (!variant.isTransformed() || variant.isUvlock()) return null;
+        Vector3f from = element.getFrom(), to = element.getTo();
+        float x0 = Math.min(from.getX(), to.getX()), y0 = Math.min(from.getY(), to.getY()), z0 = Math.min(from.getZ(), to.getZ());
+        float x1 = Math.max(from.getX(), to.getX()), y1 = Math.max(from.getY(), to.getY()), z1 = Math.max(from.getZ(), to.getZ());
+        float[][] c = {{x0, y0, z0}, {x0, y0, z1}, {x1, y0, z0}, {x1, y0, z1}, {x0, y1, z0}, {x0, y1, z1}, {x1, y1, z0}, {x1, y1, z1}};
+        int[] order = switch (dir) {
+            case DOWN -> new int[]{0, 2, 3, 1};
+            case UP -> new int[]{5, 7, 6, 4};
+            case NORTH -> new int[]{2, 0, 4, 6};
+            case SOUTH -> new int[]{1, 3, 7, 5};
+            case WEST -> new int[]{0, 1, 5, 4};
+            default -> new int[]{3, 2, 6, 7};
+        };
+        var uv = face.getUv();
+        float[][] raw = {{uv.getX(), uv.getW()}, {uv.getZ(), uv.getW()}, {uv.getZ(), uv.getY()}, {uv.getX(), uv.getY()}};
+        int steps = Math.floorMod(Math.floorDiv(face.getRotation(), 90), 4);
+        float[] p0 = c[order[0]], p1 = c[order[1]], p3 = c[order[3]];
+        float[] t0 = raw[steps % 4], t1 = raw[(steps + 1) % 4], t3 = raw[(steps + 3) % 4];
+        float e1x = p1[0] - p0[0], e1y = p1[1] - p0[1], e1z = p1[2] - p0[2];
+        float e2x = p3[0] - p0[0], e2y = p3[1] - p0[1], e2z = p3[2] - p0[2];
+        float d1u = t1[0] - t0[0], d1v = t1[1] - t0[1], d2u = t3[0] - t0[0], d2v = t3[1] - t0[1];
+        float det = d1u * d2v - d2u * d1v;
+        if (Math.abs(det) < 1e-4f) return null;
+        VectorM3f up = new VectorM3f(-(e2x * d1u - e1x * d2u) / det, -(e2y * d1u - e1y * d2u) / det, -(e2z * d1u - e1z * d2u) / det);
+        up.rotateAndScale(element.getRotation().getMatrix());
+        up.rotateAndScale(variant.getTransformMatrix());
+        float ax = Math.abs(up.x), ay = Math.abs(up.y), az = Math.abs(up.z);
+        if (ax < 1e-4f && ay < 1e-4f && az < 1e-4f) return null;
+        if (ax >= ay && ax >= az) return new int[]{up.x > 0 ? 1 : -1, 0, 0};
+        if (ay >= az) return new int[]{0, up.y > 0 ? 1 : -1, 0};
+        return new int[]{0, 0, up.z > 0 ? 1 : -1};
     }
 
     private static Direction rotate(Direction dir, Variant variant) {
@@ -294,5 +421,5 @@ public class FramedModelRenderer extends ExtendedModelRenderer {
         };
     }
 
-    private record CamoFace(ResourcePath<Texture> texturePath, int tintIndex, FusionResources.FaceInfo fusion) {}
+    private record CamoFace(ResourcePath<Texture> texturePath, int tintIndex, FusionResources.FaceInfo fusion, int[] textureUp) {}
 }

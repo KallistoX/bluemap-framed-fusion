@@ -1,0 +1,68 @@
+{
+ "variants": {
+  "power=0": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate"
+  },
+  "power=1": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=10": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=11": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=12": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=13": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=14": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=15": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=2": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=3": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=4": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=5": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=6": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=7": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=8": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  },
+  "power=9": {
+   "renderer": "framedfusion:framed",
+   "model": "minecraft:block/heavy_weighted_pressure_plate_down"
+  }
+ }
+}

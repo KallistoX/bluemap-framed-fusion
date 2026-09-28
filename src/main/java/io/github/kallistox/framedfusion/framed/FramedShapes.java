@@ -46,6 +46,25 @@ public final class FramedShapes {
         SHAPES.put("framedblocks:framed_compound_slope_panel", p -> List.of(
                 Solid.prism(0, bool(p, "yslope"), 16, 0, 16, 8, 0, 16, 0, 8)
                         .orient(orientation(facing(p), p.getOrDefault("rotation", "up"))).rotateY(quarter(p))));
+        // Corner slope edges: facing north = corner towards north-west. Outer corners are the common part of the two
+        // edges (facing and counter-clockwise of facing), inner corners both of them.
+        SHAPES.put("framedblocks:framed_elevated_corner_slope_edge", p -> corner(p, true, false));
+        SHAPES.put("framedblocks:framed_elevated_inner_corner_slope_edge", p -> corner(p, true, true));
+        SHAPES.put("framedblocks:framed_corner_slope_edge", p -> corner(p, false, false));
+        SHAPES.put("framedblocks:framed_inner_corner_slope_edge", p -> corner(p, false, true));
+        // Flat slope panel corners (FramedFlat*SlopePanelCornerGeometry): rotation and rotation turned counter-clockwise
+        SHAPES.put("framedblocks:framed_flat_slope_panel_corner", p -> List.of(flatCorner(0, facing(p), rot(p), bool(p, "front"), bool(p, "yslope"), false)));
+        SHAPES.put("framedblocks:framed_flat_inner_slope_panel_corner", p -> flatInnerCorner(0, facing(p), rot(p), bool(p, "front"), bool(p, "yslope")));
+        SHAPES.put("framedblocks:framed_flat_ext_slope_panel_corner", p -> List.of(flatCorner(0, facing(p), rot(p), false, bool(p, "yslope"), true)));
+        // FramedFlatExtendedDoubleSlopePanelCornerBlock: extended flat corner + flat inner corner facing the other way
+        SHAPES.put("framedblocks:framed_flat_ext_double_slope_panel_corner", p -> {
+            String rotation = rot(p);
+            String back = rotateRotation(rotation, rotation.equals("up") || rotation.equals("down") ? -1 : 1);
+            List<Solid> out = new java.util.ArrayList<>();
+            out.add(flatCorner(0, facing(p), rotation, false, bool(p, "yslope"), true));
+            out.addAll(flatInnerCorner(1, opposite(facing(p)), back, false, bool(p, "yslope")));
+            return out;
+        });
         // FramedPrismGeometry: triangular prism, the wide side opposite to the facing, the tip half a block towards it
         SHAPES.put("framedblocks:framed_prism", p -> {
             String[] fa = p.getOrDefault("facing_axis", "up_x").split("_");
@@ -85,6 +104,42 @@ public final class FramedShapes {
             return r != null ? r : NONE;
         });
         return solids == NONE ? null : solids;
+    }
+
+    private static List<Solid> corner(Map<String, String> p, boolean elevated, boolean inner) {
+        String type = p.getOrDefault("type", "bottom");
+        if (!type.equals("bottom") && !type.equals("top")) return null;  // horizontal corner types: not yet
+        String facing = facing(p), side = counterClockwise(facing);
+        boolean alt = bool(p, "alt_type"), ySlope = bool(p, "yslope");
+        Solid a = elevated ? elevatedSlopeEdge(0, facing, type, ySlope) : slopeEdge(0, facing, type, alt, ySlope);
+        Solid b = elevated ? elevatedSlopeEdge(0, side, type, ySlope) : slopeEdge(0, side, type, alt, ySlope);
+        return inner ? List.of(a, b) : List.of(a.intersect(b));
+    }
+
+    private static Solid flatCorner(int part, String facing, String rotation, boolean front, boolean ySlope, boolean extended) {
+        String turned = rotateRotation(rotation, -1);
+        if (extended) return extendedSlopePanel(part, facing, rotation, ySlope).intersect(extendedSlopePanel(part, facing, turned, ySlope));
+        return slopePanel(part, facing, rotation, front, ySlope).intersect(slopePanel(part, facing, turned, front, ySlope));
+    }
+
+    private static List<Solid> flatInnerCorner(int part, String facing, String rotation, boolean front, boolean ySlope) {
+        return List.of(slopePanel(part, facing, rotation, front, ySlope),
+                slopePanel(part, facing, rotateRotation(rotation, -1), front, ySlope));
+    }
+
+    /** Framed's HorizontalRotation turned by quarter turns (+1 clockwise: up -> right -> down -> left). */
+    private static String rotateRotation(String rotation, int steps) {
+        String[] order = {"up", "right", "down", "left"};
+        int i = java.util.Arrays.asList(order).indexOf(rotation);
+        return order[Math.floorMod((i < 0 ? 0 : i) + steps, 4)];
+    }
+
+    private static String rot(Map<String, String> p) {
+        return p.getOrDefault("rotation", "up");
+    }
+
+    private static String counterClockwise(String facing) {
+        return switch (facing) { case "east" -> "north"; case "south" -> "east"; case "west" -> "south"; default -> "west"; };
     }
 
     private static Solid slope(int part, String facing, String type, boolean ySlope) {
